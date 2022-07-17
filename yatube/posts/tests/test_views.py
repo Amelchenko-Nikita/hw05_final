@@ -1,5 +1,4 @@
 from django import forms
-
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -260,9 +259,8 @@ class FollowTests(TestCase):
                                               self.user_following.username}))
         self.assertEqual(Follow.objects.all().count(), 0)
 
-     def test_subscription_feed(self):
+    def test_subscription_feed(self):
         """запись появляется в ленте подписчиков"""
- 
         Follow.objects.create(user=self.user_follower,
                               author=self.user_following)
         response = self.client_auth_follower.get(reverse('posts:follow_index'))
