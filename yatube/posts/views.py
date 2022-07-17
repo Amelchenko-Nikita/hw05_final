@@ -123,3 +123,7 @@ def profile_unfollow(request, username):
     if following.exists():
         following.delete()
     return redirect('posts:profile', username=author)
+
+
+def server_error(request):
+    return render(request, "core/500.html", status=500)
