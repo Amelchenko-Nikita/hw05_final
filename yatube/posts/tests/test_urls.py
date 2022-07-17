@@ -101,4 +101,3 @@ class PostURLTests(TestCase):
         response = self.guest_client.get('500.html')
 
         self.assertEqual(response.status_code, 500)
-
