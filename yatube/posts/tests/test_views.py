@@ -155,6 +155,12 @@ class StaticURLTests(TestCase):
 
         self.assertNotIn(self.post, response.context['page_obj'])
 
+    def test_500_page(self):
+        """ Should check is 500 page correct """
+        response = self.client.get(reverse('posts:500'))
+        self.assertEqual(response.status_code, 500)
+        self.assertTemplateUsed(response, 'core/500.html')
+
 
 class PaginatorViewsTest(TestCase):
     '''Класс для тестирования пагинатора'''
