@@ -62,6 +62,7 @@ class StaticURLTests(TestCase):
             self.profile: 'posts/profile.html',
             self.detail: 'posts/post_detail.html',
             self.create: 'posts/create_post.html',
+            reverse('posts:500'): 'core/500.html',
         }
 
         for reverse_name, template in templates_pages_names.items():
