@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Лента подписки{% endblock %}
+{% block header %}Лента подписки{% endblock %}
+{% block content %}
+{% load cache %}
+  <div class="container">
+    {% include "includes/menu.html" %}
+    <!-- Вывод ленты записей -->
+
+    {% cache 20 index_page with page %}
+    {% for post in page %}
+      <!-- Вот он, новый include! -->
+      {% include "includes/post_item.html" with post=post %}
+    {% endfor %}
+    {% endcache %}
+  </div>
+
+  <!-- Вывод паджинатора -->
+  {% include "includes/paginator.html" with items=page paginator=paginator %}
+
+{% endblock %}
