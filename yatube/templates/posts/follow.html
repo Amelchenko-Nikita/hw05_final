@@ -7,8 +7,8 @@
     {% include "includes/menu.html" %}
     <!-- Вывод ленты записей -->
 
-    {% cache 20 index_page with page %}
-    {% for post in page %}
+    {% cache 20 index_page with page_obj %}
+    {% for post in page_obj %}
       <!-- Вот он, новый include! -->
       {% include "includes/post_item.html" with post=post %}
     {% endfor %}
