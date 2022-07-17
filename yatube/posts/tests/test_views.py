@@ -1,4 +1,3 @@
-
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -155,7 +154,7 @@ class StaticURLTests(TestCase):
         '''Тест пост не попал в другую группу'''
         response = self.authorized_client.get(self.another_group_list)
 
-        self.assertNotIn(self.post, response.context['page_obj'])
+        self.assertNotIn(self.post, response.context['page_obj'])  
 
 
 class PaginatorViewsTest(TestCase):
