@@ -95,3 +95,10 @@ class PostURLTests(TestCase):
         response = self.guest_client.get('/page/')
 
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+
+    def test_page_500(self):
+
+        response = self.guest_client.get('500.html')
+
+        self.assertEqual(response.status_code, 500)
+
