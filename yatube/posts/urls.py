@@ -18,4 +18,5 @@ urlpatterns = [
          name='profile_follow'),
     path('profile/<str:username>/unfollow/', views.profile_unfollow,
          name="profile_unfollow"),
+    path('500/', views.server_error, name='500'),
 ]
