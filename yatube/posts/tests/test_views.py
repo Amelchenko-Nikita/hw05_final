@@ -247,7 +247,7 @@ class FollowTests(TestCase):
         Follow.objects.create(user=self.user_follower,
                               author=self.user_following)
         response = self.client_auth_follower.get('/follow/')
-        post_text_0 = response.context["page"][0].text
+        post_text_0 = response.context["page_obj"][0].text
         self.assertEqual(post_text_0, 'Тестовая запись для тестирования ленты')
         # в качестве неподписанного пользователя проверяем собственную ленту
         response = self.client_auth_following.get('/follow/')
