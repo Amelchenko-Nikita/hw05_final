@@ -98,6 +98,6 @@ class PostURLTests(TestCase):
 
     def test_page_500(self):
 
-        response = self.guest_client.get('500.html')
+        response = self.guest_client.get('500/')
 
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 404)
