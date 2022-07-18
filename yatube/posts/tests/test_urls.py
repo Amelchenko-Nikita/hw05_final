@@ -96,8 +96,7 @@ class PostURLTests(TestCase):
 
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
-    def test_page_500(self):
-
-        response = self.guest_client.get('500/')
-
-        self.assertEqual(response.status_code, 404)
+    def test_500(self):
+        self.client.raise_request_exception = False
+        response = self.client.get(reverse('posts:500'))
+        self.assertTemplateUsed(response, 'core/500.html')
