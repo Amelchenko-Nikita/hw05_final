@@ -95,3 +95,9 @@ class PostURLTests(TestCase):
         response = self.guest_client.get('/page/')
 
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+
+    def test_403_page(self):
+        """Проверка ошибки 403"""
+        response = self.client.get(reverse('posts:403'))
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateUsed(response, 'core/403csrf.html') 
