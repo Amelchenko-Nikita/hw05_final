@@ -100,4 +100,4 @@ class PostURLTests(TestCase):
         """Проверка ошибки 403"""
         response = self.client.get(reverse('posts:403'))
         self.assertEqual(response.status_code, 403)
-        self.assertTemplateUsed(response, 'core/403csrf.html') 
+        self.assertTemplateUsed(response, 'core/403csrf.html')
