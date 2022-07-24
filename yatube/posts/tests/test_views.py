@@ -162,6 +162,12 @@ class StaticURLTests(TestCase):
         self.assertEqual(response.status_code, 500)
         self.assertTemplateUsed(response, 'core/500.html')
 
+    def test_403_page(self):
+        """Проверка ошибки 403"""
+        response = self.client.get(reverse('posts:403'))
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateUsed(response, 'core/403csrf.html')
+
 
 class PaginatorViewsTest(TestCase):
     '''Класс для тестирования пагинатора'''
