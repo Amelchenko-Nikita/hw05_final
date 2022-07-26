@@ -1,3 +1,4 @@
+from urllib import response
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -83,11 +84,9 @@ class StaticURLTests(TestCase):
         response = self.authorized_client.get(self.group_list)
 
         test_group_title = response.context.get('group').title
-
         test_group = response.context.get('group').description
 
         self.assertEqual(test_group_title, 'Тестовая группа')
-
         self.assertEqual(test_group, self.group.description)
 
     def test_post_another_group(self):
@@ -96,7 +95,6 @@ class StaticURLTests(TestCase):
         response = self.authorized_client.get(self.group_list)
 
         object = response.context["page_obj"][0]
-
         post_text = object.text
 
         self.assertTrue(post_text, 'Тестовая запись для создания поста')
@@ -155,19 +153,6 @@ class StaticURLTests(TestCase):
 
         self.assertNotIn(self.post, response.context['page_obj'])
 
-    def test_500_page(self):
-        """ Тест ошибки 500 """
-        self.client.raise_request_exception = False
-        response = self.client.get(reverse('posts:500'))
-        self.assertEqual(response.status_code, 500)
-        self.assertTemplateUsed(response, 'core/500.html')
-
-    def test_403_page(self):
-        """Проверка ошибки 403"""
-        response = self.client.get(reverse('posts:403'))
-        self.assertEqual(response.status_code, 403)
-        self.assertTemplateUsed(response, 'core/403csrf.html')
-
 
 class PaginatorViewsTest(TestCase):
     '''Класс для тестирования пагинатора'''
@@ -218,6 +203,7 @@ class CacheTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.index = reverse('posts:index')
         cls.post = Post.objects.create(
             author=User.objects.create_user(username='test_name'),
             text='Тестовая запись для создания поста')
@@ -230,14 +216,14 @@ class CacheTests(TestCase):
 
     def test_cache_index(self):
         """Тест кэширования страницы index.html"""
-        first_state = self.authorized_client.get(reverse('posts:index'))
+        first_state = self.authorized_client.get(self.index)
         post_1 = Post.objects.get(pk=1)
         post_1.text = 'Измененный текст'
         post_1.save()
-        second_state = self.authorized_client.get(reverse('posts:index'))
+        second_state = self.authorized_client.get(self.index)
         self.assertEqual(first_state.content, second_state.content)
         cache.clear()
-        third_state = self.authorized_client.get(reverse('posts:index'))
+        third_state = self.authorized_client.get(self.index)
         self.assertNotEqual(first_state.content, third_state.content)
 
 

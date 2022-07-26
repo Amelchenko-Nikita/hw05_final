@@ -1,4 +1,3 @@
-<!-- Форма добавления комментария -->
 {% load user_filters %}
 
 {% if user.is_authenticated %}
@@ -16,7 +15,7 @@
   </div>
 {% endif %}
 
-<!-- Комментарии -->
+
 {% for item in comments %}
   <div class="media card mb-4">
     <div class="media-body card-body">

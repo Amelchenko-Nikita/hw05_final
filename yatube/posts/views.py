@@ -35,13 +35,11 @@ def profile(request, username):
         ).exists()
     else:
         following = False
-    profile = author
     context = {
         'page_obj': page_paginator(posts, request),
         'following': following,
         'count': count,
         'author': author,
-        'profile': profile,
     }
     return render(request, 'posts/profile.html', context)
 
@@ -108,11 +106,11 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    user = request.user
-    author = User.objects.get(username=username)
-    following = Follow.objects.filter(user=user, author=author)
-    if user != author and not following.exists():
-        Follow.objects.create(user=user, author=author)
+    current_user = request.user
+    author = get_object_or_404(User, username=username)
+    following = Follow.objects.filter(user=current_user, author=author)
+    if current_user != author and not following.exists():
+        Follow.objects.create(user=current_user, author=author)
     return redirect(reverse('posts:profile', args=[username]))
 
 
@@ -123,11 +121,3 @@ def profile_unfollow(request, username):
     if following.exists():
         following.delete()
     return redirect('posts:profile', username=author)
-
-
-def server_error(request):
-    return render(request, "core/500.html", status=500)
-
-
-def page_error(request):
-    return render(request, 'core/403csrf.html', status=403)

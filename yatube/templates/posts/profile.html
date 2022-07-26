@@ -7,7 +7,7 @@
       {% if user != author %}
       <div class="mb-5">
         <h1>Все посты пользователя {{ author.get_full_name }}</h1>
-        <h3>Всего постов: {{ posts_count }}</h3>
+        <h3>Всего постов: {{ count }}</h3>
         {% if following %}
           <a
             class="btn btn-lg btn-light"
@@ -24,20 +24,14 @@
       </div>
       {% endif %}
       {% include 'includes/info_user.html' %}
-
        </div>
-  
        <div class="col-md-9">
-       <!-- Начало блока с отдельным постом -->
-
-          <!-- Остальные посты -->
           {% for post in page_obj %}
           {% include 'includes/post_item.html' with post=post %}
 
           {% if not forloop.last %}<hr>{% endif %}
           {% endfor %}
           {% include "includes/paginator.html" %}
-       <!-- Здесь постраничная навигация паджинатора -->
        </div>
     </div>
   </main>
