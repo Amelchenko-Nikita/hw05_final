@@ -53,36 +53,42 @@ class PostURLTests(TestCase):
                 self.assertTemplateUsed(response, template)
 
     def test_home_url_exists_at_desired_location(self):
+        '''главная страница доступна всем'''
 
         response = self.guest_client.get(self.index)
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_group_list_url_exists_at_desired_location(self):
+        '''страницы групп доступны всем '''
 
         response = self.guest_client.get(self.group_list)
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_profile_exists_at_desired_location(self):
+        '''страница профиля доступна всем'''
 
         response = self.guest_client.get(self.profile)
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_post_detail_exists_at_desired_location(self):
+        '''страница поста доступна всем'''
 
         response = self.guest_client.get(self.detail)
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_post_exists_at_desired_location(self):
+        '''страница создания поста доступна авторизованному пользователю'''
 
         response = self.authorized_client.get(self.create)
 
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_post_redirect_anonymous_on_admin_login(self):
+        '''страница создания поста перенаправит анонима на страницу входа'''
 
         response = self.guest_client.get(self.create, follow=True)
 
@@ -91,6 +97,7 @@ class PostURLTests(TestCase):
         self.assertRedirects(response, redirect)
 
     def test_page_404(self):
+        '''страница /page/ выдаст ошибку 404'''
 
         response = self.guest_client.get('/page/')
 

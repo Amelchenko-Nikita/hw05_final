@@ -1,7 +1,7 @@
-from urllib import response
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -16,6 +16,19 @@ class StaticURLTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
         cls.user = User.objects.create_user(username='auth')
         cls.group = Group.objects.create(
             title='Тестовая группа',
@@ -32,6 +45,7 @@ class StaticURLTests(TestCase):
             author=cls.user,
             text='Тестовая пост',
             group=cls.group,
+            image=uploaded,
         )
         cls.index = reverse('posts:index')
         cls.group_list = reverse('posts:group_list',
@@ -75,22 +89,27 @@ class StaticURLTests(TestCase):
         response = self.authorized_client.get(self.index)
 
         object = response.context['page_obj'][0]
+        post_image = object.image
 
         self.assertEqual(object, self.post)
+        self.assertEqual(post_image, self.post.image)
 
     def test_group_pages_show_correct_context(self):
-        """Шаблон группы"""
+        '''Шаблон группы'''
 
         response = self.authorized_client.get(self.group_list)
 
+        object = response.context['page_obj'][0]
+        post_image = object.image
         test_group_title = response.context.get('group').title
         test_group = response.context.get('group').description
 
         self.assertEqual(test_group_title, 'Тестовая группа')
         self.assertEqual(test_group, self.group.description)
+        self.assertEqual(post_image, self.post.image)
 
     def test_post_another_group(self):
-        """Пост не попал в другую группу"""
+        '''Пост не попал в другую группу'''
 
         response = self.authorized_client.get(self.group_list)
 
@@ -105,11 +124,14 @@ class StaticURLTests(TestCase):
                     get(self.profile))
 
         test_author = response.context.get('author')
+        object = response.context['page_obj'][0]
+        post_image = object.image
 
         self.assertEqual(test_author, self.post.author)
+        self.assertEqual(post_image, self.post.image)
 
     def test_post_detail_show_correct_context(self):
-        '''Тест страницы поста'''
+        '''Тест проверка контекста на странице поста'''
         response = (self.authorized_client.
                     get(self.detail))
 
@@ -118,7 +140,7 @@ class StaticURLTests(TestCase):
         self.assertEqual(test_posts, self.post)
 
     def test_post_create_show_correct_context(self):
-        '''Тест создания поста'''
+        '''Тест проверка контекста на странице создания поста'''
         response = (self.authorized_client.
                     get(self.create))
 
@@ -131,21 +153,6 @@ class StaticURLTests(TestCase):
             with self.subTest(value=value):
                 form_fields = response.context.get('form').fields.get(value)
                 self.assertIsInstance(form_fields, expected)
-
-    def test_additional_verification_when_creating_a_post(self):
-        '''Тест дополнительная проверка поста'''
-        project_pages = [
-            self.index,
-            self.group_list,
-            self.profile,
-        ]
-
-        for address in project_pages:
-            with self.subTest(adress=address):
-                response = self.author_client.get(address)
-                self.assertEqual(
-                    response.context.get('page_obj')[0], self.post
-                )
 
     def test_the_post_was_not_included_in_the_group(self):
         '''Тест пост не попал в другую группу'''
@@ -215,19 +222,33 @@ class CacheTests(TestCase):
         self.authorized_client.force_login(self.user)
 
     def test_cache_index(self):
-        """Тест кэширования страницы index.html"""
+        '''Тест кэширования страницы index.html'''
         first_state = self.authorized_client.get(self.index)
         post_1 = Post.objects.get(pk=1)
         post_1.text = 'Измененный текст'
         post_1.save()
         second_state = self.authorized_client.get(self.index)
+
         self.assertEqual(first_state.content, second_state.content)
+
         cache.clear()
         third_state = self.authorized_client.get(self.index)
+
         self.assertNotEqual(first_state.content, third_state.content)
 
 
 class FollowTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.follow = reverse('posts:profile_follow',
+                                              kwargs={'username':
+                                                      'following'})
+        cls.unfollow = reverse('posts:profile_unfollow',
+                                      kwargs={'username':
+                                              'following'})
+        cls.follow_index = reverse('posts:follow_index')
+
     def setUp(self):
         self.client_auth_follower = Client()
         self.client_auth_following = Client()
@@ -241,30 +262,30 @@ class FollowTests(TestCase):
         self.client_auth_following.force_login(self.user_following)
 
     def test_follow(self):
-        self.client_auth_follower.get(reverse('posts:profile_follow',
-                                              kwargs={'username':
-                                                      self.user_following.
-                                                      username}))
+        '''Тест подписки'''
+        self.client_auth_follower.get(self.follow)
+
         self.assertEqual(Follow.objects.all().count(), 1)
 
     def test_unfollow(self):
-        self.client_auth_follower.get(reverse('posts:profile_follow',
-                                              kwargs={'username':
-                                                      self.user_following.
-                                                      username}))
-        self.client_auth_follower.get(reverse('posts:profile_unfollow',
-                                      kwargs={'username':
-                                              self.user_following.username}))
+        '''Тест отписки'''
+        self.client_auth_follower.get(self.follow)
+        self.client_auth_follower.get(self.unfollow)
+
         self.assertEqual(Follow.objects.all().count(), 0)
 
     def test_subscription_feed(self):
-        """запись появляется в ленте подписчиков"""
+        '''запись появляется в ленте подписчиков'''
         Follow.objects.create(user=self.user_follower,
                               author=self.user_following)
-        response = self.client_auth_follower.get(reverse('posts:follow_index'))
+
+        response = self.client_auth_follower.get(self.follow_index)
+
         post_text = response.context["page_obj"][0].text
+
         self.assertEqual(post_text, 'Тестовая запись для тестирования ленты')
-        response = self.client_auth_following.get(
-            reverse('posts:follow_index'))
+
+        response = self.client_auth_following.get(self.follow_index)
+
         self.assertNotContains(response,
                                'Тестовая запись для тестирования ленты')
