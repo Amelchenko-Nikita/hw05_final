@@ -1,3 +1,7 @@
+import shutil
+import tempfile
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
@@ -12,6 +16,7 @@ class PostCreateFormTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
         cls.user = User.objects.create_user(username='auth')
         cls.group = Group.objects.create(
             title='TitleTest',
@@ -37,6 +42,11 @@ class PostCreateFormTests(TestCase):
             content_type='image/gif'
         )
 
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
+
     def setUp(self):
         self.author_client = Client()
         self.author_client.force_login(self.user)
@@ -49,11 +59,13 @@ class PostCreateFormTests(TestCase):
             'group': self.group.id,
             'image': self.test_image,
         }
+
         response = self.author_client.post(
             reverse('posts:post_create'),
             data=form_data,
             follow=True
         )
+
         self.assertRedirects(response, reverse(
             'posts:profile', kwargs={'username': self.user.username}))
         self.assertEqual(Post.objects.count(), posts_count + 1)
@@ -66,6 +78,7 @@ class PostCreateFormTests(TestCase):
         )
 
     def test_edit_post(self):
+        '''Тест редактировая поста'''
         post_edit = Post.objects.create(
             text='Текст для редактирования',
             author=self.user,
@@ -76,6 +89,7 @@ class PostCreateFormTests(TestCase):
             'text': 'Текст поста для редактирование',
             'group': self.group.id,
         }
+
         response = self.author_client.post(
             reverse('posts:post_edit', args=[
                     post_edit.id]),
@@ -88,15 +102,18 @@ class PostCreateFormTests(TestCase):
         self.assertEqual(Post.objects.get(id=post_id).text, form_data['text'])
 
     def test_comment_create(self):
+        '''Тест создания комментария'''
         comment_count = Comment.objects.count()
         form_data = {
             'text': 'Новый комментарий'
         }
+
         response = self.author_client.post(
             reverse(('posts:add_comment'),
                     kwargs={'post_id': f'{self.post.id}'}),
             data=form_data,
             follow=True)
+
         self.assertRedirects(response, reverse((
             'posts:post_detail'), kwargs={'post_id': f'{self.post.id}'}))
         self.assertEqual(Comment.objects.count(), comment_count + 1)

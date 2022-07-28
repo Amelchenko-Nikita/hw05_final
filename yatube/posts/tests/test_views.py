@@ -1,3 +1,6 @@
+import shutil
+import tempfile
+
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -6,7 +9,7 @@ from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from ..models import Follow, Group, Post, User
+from ..models import Follow, Comment, Group, Post, User
 
 User = get_user_model()
 
@@ -16,6 +19,7 @@ class StaticURLTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
         small_gif = (
             b'\x47\x49\x46\x38\x39\x61\x02\x00'
             b'\x01\x00\x80\x00\x00\x00\x00\x00'
@@ -58,6 +62,11 @@ class StaticURLTests(TestCase):
         cls.detail = reverse('posts:post_detail',
                              kwargs={'post_id': '1'})
 
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
+
     def setUp(self):
         self.guest_client = Client()
         self.guest = User.objects.create_user(username='bot')
@@ -66,6 +75,7 @@ class StaticURLTests(TestCase):
         self.user = User.objects.get(username='auth')
         self.author_client = Client()
         self.author_client.force_login(self.user)
+        cache.clear()
 
     def test_pages_uses_correct_template(self):
         '''Тест шаблонов'''
@@ -95,7 +105,7 @@ class StaticURLTests(TestCase):
         self.assertEqual(post_image, self.post.image)
 
     def test_group_pages_show_correct_context(self):
-        '''Шаблон группы'''
+        '''Тест контекста группы'''
 
         response = self.authorized_client.get(self.group_list)
 
@@ -119,7 +129,7 @@ class StaticURLTests(TestCase):
         self.assertTrue(post_text, 'Тестовая запись для создания поста')
 
     def test_profile_page_show_correct_context(self):
-        '''Тест профиля'''
+        '''Тест контекста профиля'''
         response = (self.authorized_client.
                     get(self.profile))
 
@@ -159,6 +169,15 @@ class StaticURLTests(TestCase):
         response = self.authorized_client.get(self.another_group_list)
 
         self.assertNotIn(self.post, response.context['page_obj'])
+
+    def test_add_comment_login_user(self):
+        '''Проверка доступа зарегистрированного пользователя к добавлению комментария'''
+
+        response = self.authorized_client.get(
+            reverse('posts:add_comment',
+            kwargs={'post_id': '1'}))
+
+        self.assertEqual(response.status_code, 200)
 
 
 class PaginatorViewsTest(TestCase):
@@ -223,18 +242,21 @@ class CacheTests(TestCase):
 
     def test_cache_index(self):
         '''Тест кэширования страницы index.html'''
-        first_state = self.authorized_client.get(self.index)
+        reponse_before_cache = self.authorized_client.get(self.index)
+
         post_1 = Post.objects.get(pk=1)
         post_1.text = 'Измененный текст'
         post_1.save()
-        second_state = self.authorized_client.get(self.index)
 
-        self.assertEqual(first_state.content, second_state.content)
+        reponse_cached = self.authorized_client.get(self.index)
+
+        self.assertEqual(reponse_before_cache.content, reponse_cached.content)
 
         cache.clear()
-        third_state = self.authorized_client.get(self.index)
 
-        self.assertNotEqual(first_state.content, third_state.content)
+        response_third_cache = self.authorized_client.get(self.index)
+
+        self.assertNotEqual(reponse_before_cache.content, response_third_cache.content)
 
 
 class FollowTests(TestCase):
