@@ -120,8 +120,7 @@ class PostCreateFormTests(TestCase):
         self.assertRedirects(response, reverse((
             'posts:post_detail'), kwargs={'post_id': f'{self.post.id}'}))
         self.assertEqual(Comment.objects.count(), comment_count + 1)
-        self.assertTrue(Comment.objects.filter(text='Новый комментарий',
-                                              ).exists())
+        self.assertTrue(Comment.objects.filter(text='Новый комментарий').exists())
 
     def test_add_comment_login_user(self):
         '''
