@@ -130,6 +130,7 @@ class PostCreateFormTests(TestCase):
         '''
 
         response = self.guest_client.get(reverse('posts:add_comment',
-                                          kwargs={'post_id': '1'}))
+                                                 kwargs={'post_id': '1'})
+                                        )
 
         self.assertEqual(response.status_code, 302)
