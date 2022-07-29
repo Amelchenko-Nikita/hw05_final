@@ -13,19 +13,19 @@ class Post(models.Model):
         on_delete=models.CASCADE,
         related_name='posts',
         verbose_name='authors'
-        )
+    )
     group = models.ForeignKey(
         'Group',
         on_delete=models.SET_NULL,
         related_name='posts',
         blank=True, null=True, 
         verbose_name='groups'
-        )
+    )
     image = models.ImageField(
         'Картинка',
         upload_to='posts/',
         blank=True
-        )
+    )
     class Meta:
         ordering = ['-pub_date']
 
@@ -47,12 +47,12 @@ class Comment(models.Model):
         Post,
         on_delete=models.CASCADE,
         related_name='comments'
-        )
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='comments'
-        )
+    )
     text = models.TextField()
     created = models.DateTimeField('date published', auto_now_add=True)
 
@@ -65,12 +65,12 @@ class Follow(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='follower'
-        )
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='following'
-        )
+    )
 
     class Meta:
         constraints = (models.UniqueConstraint(fields=('user', 'author'),
