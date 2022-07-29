@@ -4,19 +4,21 @@ import tempfile
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from posts.models import Comment, Group, Post
 
 User = get_user_model()
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostCreateFormTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
         cls.user = User.objects.create_user(username='auth')
         cls.group = Group.objects.create(
             title='TitleTest',
@@ -44,12 +46,13 @@ class PostCreateFormTests(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
         super().tearDownClass()
 
     def setUp(self):
         self.author_client = Client()
         self.author_client.force_login(self.user)
+        self.guest_client = Client()
 
     def test_post_create(self):
         """форма создает запись в Post."""
@@ -117,3 +120,16 @@ class PostCreateFormTests(TestCase):
         self.assertRedirects(response, reverse((
             'posts:post_detail'), kwargs={'post_id': f'{self.post.id}'}))
         self.assertEqual(Comment.objects.count(), comment_count + 1)
+        self.assertTrue(Comment.objects.filter(text='Новый комментарий',
+                                              ).exists())
+
+    def test_add_comment_login_user(self):
+        '''
+        Проверка доступа не зарегистрированного
+        пользователя к добавлению комментария
+        '''
+
+        response = self.guest_client.get(reverse('posts:add_comment',
+                                          kwargs={'post_id': '1'}))
+
+        self.assertEqual(response.status_code, 302)

@@ -6,20 +6,22 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.cache import cache
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from ..models import Follow, Comment, Group, Post, User
+from ..models import Follow, Group, Post, User
 
 User = get_user_model()
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class StaticURLTests(TestCase):
     '''Класс для тестирования View'''
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
         small_gif = (
             b'\x47\x49\x46\x38\x39\x61\x02\x00'
             b'\x01\x00\x80\x00\x00\x00\x00\x00'
@@ -64,7 +66,7 @@ class StaticURLTests(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
         super().tearDownClass()
 
     def setUp(self):
@@ -171,11 +173,13 @@ class StaticURLTests(TestCase):
         self.assertNotIn(self.post, response.context['page_obj'])
 
     def test_add_comment_login_user(self):
-        '''Проверка доступа зарегистрированного пользователя к добавлению комментария'''
+        '''
+        Проверка доступа зарегистрированного
+        пользователя к добавлению комментария
+        '''
 
         response = self.authorized_client.get(
-            reverse('posts:add_comment',
-            kwargs={'post_id': '1'}))
+            reverse('posts:add_comment', kwargs={'post_id': '1'}))
 
         self.assertEqual(response.status_code, 200)
 
@@ -264,9 +268,11 @@ class FollowTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.follow = reverse('posts:profile_follow',
-                             kwargs={'username': 'following'})
+                                              kwargs={'username':
+                                                      'following'})
         cls.unfollow = reverse('posts:profile_unfollow',
-                               kwargs={'username': 'following'})
+                                      kwargs={'username':
+                                              'following'})
         cls.follow_index = reverse('posts:follow_index')
 
     def setUp(self):

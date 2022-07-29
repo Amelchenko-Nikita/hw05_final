@@ -34,7 +34,6 @@ class Post(models.Model):
 
 
 class Group(models.Model):
-    id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
     description = models.TextField()
@@ -74,5 +73,5 @@ class Follow(models.Model):
         )
     class Meta:
         constraints = (models.UniqueConstraint(fields=('user', 'author'),
-                                               name='Пара уникальных значений')
+                                               name='Пара уникальных значений'),
                        )
