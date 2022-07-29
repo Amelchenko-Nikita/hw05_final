@@ -260,7 +260,8 @@ class CacheTests(TestCase):
 
         response_third_cache = self.authorized_client.get(self.index)
 
-        self.assertNotEqual(reponse_before_cache.content, response_third_cache.content)
+        self.assertNotEqual(reponse_before_cache.content,
+                            response_third_cache.content)
 
 
 class FollowTests(TestCase):
@@ -271,8 +272,8 @@ class FollowTests(TestCase):
                                               kwargs={'username':
                                                       'following'})
         cls.unfollow = reverse('posts:profile_unfollow',
-                                      kwargs={'username':
-                                              'following'})
+                               kwargs={'username':
+                                       'following'})
         cls.follow_index = reverse('posts:follow_index')
 
     def setUp(self):
