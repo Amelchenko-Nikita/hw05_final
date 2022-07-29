@@ -269,8 +269,8 @@ class FollowTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.follow = reverse('posts:profile_follow',
-                                              kwargs={'username':
-                                                      'following'})
+                             kwargs={'username':
+                                     'following'})
         cls.unfollow = reverse('posts:profile_unfollow',
                                kwargs={'username':
                                        'following'})
