@@ -77,4 +77,4 @@ class Follow(models.Model):
         constraints = (
             models.UniqueConstraint(
                 fields=('user', 'author'), name='Пара уникальных значений'),
-                       )
+        )
