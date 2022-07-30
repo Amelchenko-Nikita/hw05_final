@@ -1,6 +1,8 @@
 import shutil
 import tempfile
 
+from http import HTTPStatus
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -128,8 +130,10 @@ class PostCreateFormTests(TestCase):
         Проверка доступа не зарегистрированного
         пользователя к добавлению комментария
         '''
+        comment_count = Comment.objects.count()
 
         response = self.guest_client.get(reverse('posts:add_comment',
-                                                 kwargs={'post_id': '1'}))
+                                          kwargs={'post_id': '1'}))
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertEqual(Comment.objects.count(), comment_count + 0)
