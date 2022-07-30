@@ -133,7 +133,7 @@ class PostCreateFormTests(TestCase):
         comment_count = Comment.objects.count()
 
         response = self.guest_client.get(reverse('posts:add_comment',
-                                          kwargs={'post_id': '1'}))
+                                                 kwargs={'post_id': '1'}))
 
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
         self.assertEqual(Comment.objects.count(), comment_count + 0)
