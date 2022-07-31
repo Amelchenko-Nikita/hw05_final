@@ -136,4 +136,4 @@ class PostCreateFormTests(TestCase):
                                                  kwargs={'post_id': '1'}))
 
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
-        self.assertEqual(Comment.objects.count(), comment_count + 0)
+        self.assertEqual(Comment.objects.count(), comment_count)
